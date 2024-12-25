@@ -16,31 +16,31 @@ public class MessageDAO {
      * @return The Message object with the generated message_id.
      */
     public Message createMessage(Message message) {
+        if (message.getMessage_text() == null || message.getMessage_text().trim().isEmpty()) {
+            throw new IllegalArgumentException("Message text cannot be empty.");
+        }
+        
         String sql = "INSERT INTO message (posted_by, message_text, time_posted_epoch) VALUES (?, ?, ?)";
         try (Connection connection = ConnectionUtil.getConnection()) {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setInt(1, message.getPosted_by());
             ps.setString(2, message.getMessage_text());
             ps.setLong(3, message.getTime_posted_epoch());
-    
+        
             int rowsAffected = ps.executeUpdate();
-            System.out.println("Rows affected: " + rowsAffected);  // Debugging statement
-    
             ResultSet generatedKeys = ps.getGeneratedKeys();
             if (generatedKeys.next()) {
                 int generatedMessageId = generatedKeys.getInt(1);
-                message.setMessage_id(generatedMessageId); // Set the generated ID in message
-                System.out.println("Generated message_id: " + generatedMessageId);  // Debugging statement
+                message.setMessage_id(generatedMessageId);
             } else {
                 throw new SQLException("No ID obtained");
             }
             return message;
         } catch (SQLException e) {
             e.printStackTrace();
+            throw new DataAccessException("Error while creating message", e);
         }
-        return null;
     }
-    
 
     
     /**
@@ -137,17 +137,17 @@ public class MessageDAO {
         String sql = "DELETE FROM message WHERE message_id = ?";
         try (Connection conn = ConnectionUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+    
             stmt.setInt(1, message_id);
             int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
+            // If no rows are affected, the message doesn't exist
+            return rowsAffected > 0; 
         } catch (SQLException e) {
             System.err.println("Error while deleting message with ID " + message_id);
             e.printStackTrace();
             throw new DataAccessException("Error while deleting message", e);
         }
     }
-
     /**
      * Custom exception for data access errors.
      */
@@ -156,5 +156,24 @@ public class MessageDAO {
             super(message, cause);
         }
     }
+
+    // Ensure test message with ID 1 exists in the database
+public void addTestMessages() {
+    String sql = "SELECT COUNT(*) FROM message WHERE message_id = 1";
+    try (Connection conn = ConnectionUtil.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next() && rs.getInt(1) == 0) {
+            // No message with ID 1, insert a test message
+            String insertSql = "INSERT INTO message (message_id, posted_by, message_text, time_posted_epoch) VALUES (1, 1, 'test message 1', 1669947792)";
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                insertStmt.executeUpdate();
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
 }
 

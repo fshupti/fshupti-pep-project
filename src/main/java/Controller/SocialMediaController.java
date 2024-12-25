@@ -6,7 +6,7 @@ import Model.Account;
 import Model.Message;
 import io.javalin.Javalin;
 import io.javalin.http.Handler;
-//import io.javalin.http.Context;
+import io.javalin.http.Context;
 
 /**
  * TODO: You will need to write your own endpoints and handlers for your controller. The endpoints you will need can be
@@ -134,4 +134,18 @@ public class SocialMediaController {
             ctx.status(404).result("Message not found");
         }
     };
+
+    public void deleteMessageById(Context ctx) {
+        int messageId = Integer.parseInt(ctx.pathParam("messageId"));
+        boolean success = messageService.deleteMessage(messageId);
+        
+        if (success) {
+            // Message deleted successfully, return the deleted message
+            Message deletedMessage = messageService.getMessageById(messageId);
+            ctx.status(200).json(deletedMessage);
+        } else {
+            // Message not found, return 404
+            ctx.status(404).result("Message not found");
+        }
+    }
 } 
