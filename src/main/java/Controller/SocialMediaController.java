@@ -129,27 +129,27 @@ public class SocialMediaController {
 
     private Handler updateMessageHandler = ctx -> {
         int message_id = Integer.parseInt(ctx.pathParam("id"));
-
+        
         // Retrieve the existing message from the database
         Message existingMessage = messageService.getMessageById(message_id);
         if (existingMessage == null) {
-            ctx.status(400).result("Message not found");
+            ctx.status(400).result("");  // Return empty body with 400 status
             return;
         }
-
+    
         // Parse the new data from the request body
         Message newMessageData = ctx.bodyAsClass(Message.class);
         String newMessageText = newMessageData.getMessage_text();
-
+    
         // Validate the message text
         if (newMessageText == null || newMessageText.isEmpty() || newMessageText.length() > 255) {
             ctx.status(400).result("Invalid message text");
             return;
         }
-
+    
         // Update the message text
         existingMessage.setMessage_text(newMessageText);
-
+    
         // Persist the updated message in the database
         boolean updated = messageService.updateMessage(existingMessage);
         if (updated) {
@@ -158,7 +158,7 @@ public class SocialMediaController {
             ctx.status(500).result("Message update failed");
         }
     };
-
+    
     private Handler deleteMessageHandler = ctx -> {
         int message_id = Integer.parseInt(ctx.pathParam("id"));
         boolean deleted = messageService.deleteMessage(message_id);
