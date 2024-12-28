@@ -6,7 +6,7 @@ import Model.Account;
 import Model.Message;
 import io.javalin.Javalin;
 import io.javalin.http.Handler;
-import io.javalin.http.Context;
+//import io.javalin.http.Context;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -45,6 +45,8 @@ public class SocialMediaController {
         app.patch("/messages/{id}", updateMessageHandler); // Changed to PATCH
         app.delete("/messages/{id}", deleteMessageHandler);
         app.get("/accounts/{id}/messages", getMessagesByAccountIdHandler);
+     
+
 
         return app;
     }
@@ -162,16 +164,19 @@ public class SocialMediaController {
     
     private Handler deleteMessageHandler = ctx -> {
         int message_id = Integer.parseInt(ctx.pathParam("id"));
-        boolean deleted = messageService.deleteMessage(message_id);
-        if (deleted) {
-            ctx.status(200).result("Message deleted successfully");
+        Message deletedMessage = messageService.deleteMessage(message_id);  // Expecting Message return type
+    
+        if (deletedMessage != null) {
+            ctx.status(200).json(deletedMessage);  // Return 200 OK and the deleted message in response
         } else {
-            ctx.status(404).result("Message not found");
+            ctx.status(200).result("");  // Return 200 OK with empty body if message is not found
         }
     };
+    
+    
 
 
-public void deleteMessageById(Context ctx) {
+/**public void deleteMessageById(Context ctx) {
     int messageId = Integer.parseInt(ctx.pathParam("messageId"));
     boolean success = messageService.deleteMessage(messageId);
     
@@ -183,7 +188,7 @@ public void deleteMessageById(Context ctx) {
         // Message not found, return 404
         ctx.status(404).result("Message not found");
     }
-}
+} **/
 // Handler for retrieving all messages associated with a specific account
 
 private Handler getMessagesByAccountIdHandler = ctx -> {
