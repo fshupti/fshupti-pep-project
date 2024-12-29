@@ -222,7 +222,7 @@ private Handler loginHandler = ctx -> {
     // Parse the request body into an Account object
     Account loginRequest = ctx.bodyAsClass(Account.class);
 
-    // Validate the username and password
+    // Validate the username and password using the service
     Account account = accountService.login(loginRequest.getUsername(), loginRequest.getPassword());
 
     if (account != null) {

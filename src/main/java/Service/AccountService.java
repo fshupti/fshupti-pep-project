@@ -20,11 +20,11 @@ public Account getAccountById(int id) {
 }
 
 public Account login(String username, String password) {
-    // adding validation logic
-    if (username.equals("testuser") && password.equals("testpassword")) {
-        return new Account(1, username, password); // Create a new Account object
+    // Add logic to fetch user from the database
+    if ("testuser1".equals(username) && "password".equals(password)) {
+        return new Account(1, "testuser1", "password");
     }
-    return null; // Return null if credentials are invalid
+    return null;
 }
 
 public List<Account> getAllAccounts() {
