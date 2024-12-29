@@ -47,9 +47,11 @@ public class SocialMediaController {
         app.delete("/messages/{id}", deleteMessageHandler);
 
         app.post("/login", loginHandler);
+        app.post("/register", registerUserHandler);
+
+        
         
      
-
 
         return app;
     }
@@ -69,13 +71,13 @@ private Handler createAccountHandler = ctx -> {
 private Handler getAccountByIdHandler = ctx -> {
     int accountId = Integer.parseInt(ctx.pathParam("id"));
     Account account = accountService.getAccountById(accountId);
-
     if (account != null) {
         ctx.status(200).json(account);
     } else {
         ctx.status(404).result("Account not found");
     }
 };
+
 
     private Handler getAllAccountsHandler = ctx -> {
         ctx.json(accountService.getAllAccounts());
@@ -233,6 +235,37 @@ private Handler loginHandler = ctx -> {
         ctx.status(401).result("");
     }
 };
+
+private Handler registerUserHandler = ctx -> {
+    // Parse the request body into an Account object
+    Account registerRequest = ctx.bodyAsClass(Account.class);
+
+    // Validate the username and password
+    if (registerRequest.getUsername().isEmpty()) {
+        ctx.status(400).result("");  // Return 400 for blank username
+        return;
+    }
+
+    if (registerRequest.getPassword().length() < 4) {
+        ctx.status(400).result("");  // Return 400 for password less than 4 characters
+        return;
+    }
+
+    // Check if the username already exists
+    Account existingAccount = accountService.getAccountByUsername(registerRequest.getUsername());
+    if (existingAccount != null) {
+        ctx.status(400).result("");  // Return 400 if username already exists
+        return;
+    }
+
+    // Create a new account
+    Account createdAccount = accountService.createAccount(registerRequest);
+
+    // Return the created account with a 200 status
+    ctx.status(200).json(createdAccount);
+};
+
+
 
 
 }

@@ -4,9 +4,11 @@ import DAO.AccountDAO;
 import Model.Account;
 
 import java.util.List;
+import java.util.ArrayList;
 
 public class AccountService {
     private AccountDAO accountDAO = new AccountDAO();
+    private List<Account> accountList = new ArrayList<>();
 
     // AccountService.java
 public Account createAccount(Account account) {
@@ -26,6 +28,18 @@ public Account login(String username, String password) {
     }
     return null;
 }
+
+
+// Get account by username
+public Account getAccountByUsername(String username) {
+    for (Account account : accountList) {
+        if (account.getUsername().equals(username)) {
+            return account;
+        }
+    }
+    return null;  // Return null if no account found
+}
+
 
 public List<Account> getAllAccounts() {
     return accountDAO.getAllAccounts(); // Fetch all accounts from the database
