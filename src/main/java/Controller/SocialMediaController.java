@@ -35,6 +35,7 @@ public class SocialMediaController {
         app.get("/accounts", getAllAccountsHandler);
         app.put("/accounts/{id}", updateAccountHandler);
         app.delete("/accounts/{id}", deleteAccountHandler);
+        app.get("/accounts/{id}/messages", getMessagesByAccountIdHandler);
     
 
 
@@ -44,29 +45,37 @@ public class SocialMediaController {
         app.get("/messages", getAllMessagesHandler);
         app.patch("/messages/{id}", updateMessageHandler); // Changed to PATCH
         app.delete("/messages/{id}", deleteMessageHandler);
-        app.get("/accounts/{id}/messages", getMessagesByAccountIdHandler);
+
+        app.post("/login", loginHandler);
+        
      
 
 
         return app;
     }
 
-    // Handlers for Account routes
-    private Handler createAccountHandler = ctx -> {
-        Account account = ctx.bodyAsClass(Account.class);
-        Account createdAccount = accountService.createAccount(account);
-        ctx.status(201).json(createdAccount);
-    };
+    
 
-    private Handler getAccountByIdHandler = ctx -> {
-        int account_id = Integer.parseInt(ctx.pathParam("id"));
-        Account account = accountService.getAccountById(account_id);
-        if (account != null) {
-            ctx.json(account);
-        } else {
-            ctx.status(404).result("Account not found");
-        }
-    };
+   // POST /accounts - Create a new account
+private Handler createAccountHandler = ctx -> {
+    Account account = ctx.bodyAsClass(Account.class); // Assuming JSON input
+    Account createdAccount = accountService.createAccount(account);
+
+    // Send back the created account and set the status to 201 Created
+    ctx.status(201).json(createdAccount);
+};
+
+// GET /accounts/{id} - Retrieve account by ID
+private Handler getAccountByIdHandler = ctx -> {
+    int accountId = Integer.parseInt(ctx.pathParam("id"));
+    Account account = accountService.getAccountById(accountId);
+
+    if (account != null) {
+        ctx.status(200).json(account);
+    } else {
+        ctx.status(404).result("Account not found");
+    }
+};
 
     private Handler getAllAccountsHandler = ctx -> {
         ctx.json(accountService.getAllAccounts());
@@ -208,4 +217,23 @@ private Handler getMessagesByAccountIdHandler = ctx -> {
     }
 };
 
+// POST /login - Login with username and password
+private Handler loginHandler = ctx -> {
+    // Parse the request body into an Account object
+    Account loginRequest = ctx.bodyAsClass(Account.class);
+
+    // Validate the username and password
+    Account account = accountService.login(loginRequest.getUsername(), loginRequest.getPassword());
+
+    if (account != null) {
+        // Login successful, return 200 OK with the account details as JSON
+        ctx.status(200).json(account);
+    } else {
+        // Login failed, return 401 Unauthorized with an empty body
+        ctx.status(401).result("");
+    }
+};
+
+
 }
+
