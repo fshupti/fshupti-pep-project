@@ -16,32 +16,26 @@ public class MessageDAO {
      * @return The Message object with the generated message_id.
      */
     public Message createMessage(Message message) {
-        if (message.getMessage_text() == null || message.getMessage_text().trim().isEmpty()) {
-            throw new IllegalArgumentException("Message text cannot be empty.");
-        }
-        
-        String sql = "INSERT INTO message (posted_by, message_text, time_posted_epoch) VALUES (?, ?, ?)";
-        try (Connection connection = ConnectionUtil.getConnection()) {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setInt(1, message.getPosted_by());
-            ps.setString(2, message.getMessage_text());
-            ps.setLong(3, message.getTime_posted_epoch());
-        
-            int rowsAffected = ps.executeUpdate();
-            ResultSet generatedKeys = ps.getGeneratedKeys();
-            if (generatedKeys.next()) {
-                int generatedMessageId = generatedKeys.getInt(1);
-                message.setMessage_id(generatedMessageId);
-            } else {
-                throw new SQLException("No ID obtained");
+        try (Connection conn = ConnectionUtil.getConnection()) {
+            String sql = "INSERT INTO message (posted_by, message_text, time_posted_epoch) VALUES (?, ?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            stmt.setInt(1, message.getPosted_by());
+            stmt.setString(2, message.getMessage_text());
+            stmt.setLong(3, message.getTime_posted_epoch());
+    
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows > 0) {
+                ResultSet generatedKeys = stmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    message.setMessage_id(generatedKeys.getInt(1));
+                }
             }
-            return message;
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new DataAccessException("Error while creating message", e);
         }
+        return message;
     }
-
+    
     
     /**
      * Retrieves a Message from the database by its ID.

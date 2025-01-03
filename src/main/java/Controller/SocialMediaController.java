@@ -109,12 +109,33 @@ private Handler getAccountByIdHandler = ctx -> {
     private Handler createMessageHandler = ctx -> {
         try {
             Message message = ctx.bodyAsClass(Message.class);
+            
+            // Validate message text
+            if (message.getMessage_text() == null || message.getMessage_text().trim().isEmpty()) {
+                ctx.status(400).result("");  // Empty message text
+                return;
+            }
+            if (message.getMessage_text().length() > 255) {
+                ctx.status(400).result("");  // Message text too long
+                return;
+            }
+    
+            // Validate user exists
+            Account user = accountService.getAccountById(message.getPosted_by());
+            if (user == null) {
+                ctx.status(400).result("");  // User not found
+                return;
+            }
+    
+            // Create message
             Message createdMessage = messageService.createMessage(message);
-            ctx.status(201).json(createdMessage);
+            ctx.status(200).json(createdMessage);  // Successfully created message
         } catch (IllegalArgumentException e) {
-            ctx.status(400).result(e.getMessage());
+            ctx.status(400).result(e.getMessage());  // Invalid message
         }
     };
+    
+    
 
     private Handler getMessageByIdHandler = ctx -> {
         int message_id = Integer.parseInt(ctx.pathParam("id"));
