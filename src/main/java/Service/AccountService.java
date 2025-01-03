@@ -22,10 +22,15 @@ public Account getAccountById(int id) {
 }
 
 public Account login(String username, String password) {
-    // Add logic to fetch user from the database
-    if ("testuser1".equals(username) && "password".equals(password)) {
-        return new Account(1, "testuser1", "password");
+    // Fetch the account by username and password from the DAO
+    Account account = accountDAO.getAccountByUsernameAndPassword(username, password);
+
+    // If the account exists and the password matches, return the account
+    if (account != null && account.getPassword().equals(password)) {
+        return account;
     }
+
+    // Return null if no account is found or password is incorrect
     return null;
 }
 

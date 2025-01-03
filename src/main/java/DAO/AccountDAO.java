@@ -60,23 +60,29 @@ public class AccountDAO {
         return account;
     }
 
-    public Account getAccountByUsernameAndPassword(String username, String password) {
-        String sql = "SELECT * FROM accounts WHERE username = ? AND password = ?";
-        try (Connection conn = ConnectionUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                return new Account(rs.getInt("account_id"), rs.getString("username"), rs.getString("password"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+   // Inside AccountDAO.java
+   public Account getAccountByUsernameAndPassword(String username, String password) {
+    String query = "SELECT * FROM account WHERE username = ? AND password = ?";
+    try (Connection conn = ConnectionUtil.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(query)) {
+
+        stmt.setString(1, username);
+        stmt.setString(2, password);
+
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            // Create and return Account object using constructor with all fields
+            int accountId = rs.getInt("account_id");
+            String retrievedUsername = rs.getString("username");
+            String retrievedPassword = rs.getString("password");
+            return new Account(accountId, retrievedUsername, retrievedPassword); // Use constructor with all fields
         }
-        return null; // Return null if no account is found
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
-    
+    return null; // Return null if no account found
+}
+
 
     /**
      * Retrieves all Accounts from the database.
