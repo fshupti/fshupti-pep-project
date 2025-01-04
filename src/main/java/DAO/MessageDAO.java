@@ -15,26 +15,40 @@ public class MessageDAO {
      * @param message The Message object to be added.
      * @return The Message object with the generated message_id.
      */
-    public Message createMessage(Message message) {
-        try (Connection conn = ConnectionUtil.getConnection()) {
-            String sql = "INSERT INTO message (posted_by, message_text, time_posted_epoch) VALUES (?, ?, ?)";
-            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            stmt.setInt(1, message.getPosted_by());
-            stmt.setString(2, message.getMessage_text());
-            stmt.setLong(3, message.getTime_posted_epoch());
-    
-            int affectedRows = stmt.executeUpdate();
-            if (affectedRows > 0) {
-                ResultSet generatedKeys = stmt.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    message.setMessage_id(generatedKeys.getInt(1));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return message;
-    }
+    public Message createMessage(Message message) {  
+        try (Connection conn = ConnectionUtil.getConnection()) {  
+           String sql = "INSERT INTO message (posted_by, message_text, time_posted_epoch) VALUES (?, ?, ?)";  
+           PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);  
+           stmt.setInt(1, message.getPosted_by());  
+           stmt.setString(2, message.getMessage_text());  
+           stmt.setLong(3, message.getTime_posted_epoch());  
+       
+           System.out.println("Executing SQL query: " + sql);  // Log SQL query  
+           System.out.println("Parameters: posted_by=" + message.getPosted_by() + ", message_text=" + message.getMessage_text() + ", time_posted_epoch=" + message.getTime_posted_epoch());  // Log parameters  
+       
+           int affectedRows = stmt.executeUpdate();  
+           System.out.println("Affected rows: " + affectedRows);  // Log affected rows  
+       
+           if (affectedRows > 0) {  
+             ResultSet generatedKeys = stmt.getGeneratedKeys();  
+             if (generatedKeys.next()) {  
+                message.setMessage_id(generatedKeys.getInt(1));  
+                System.out.println("Generated message ID: " + message.getMessage_id());  // Log generated message ID  
+             } else {  
+                System.out.println("Error: No generated keys found");  // Log error  
+             }  
+           } else {  
+             System.out.println("Error: No rows affected");  // Log error  
+           }  
+        } catch (SQLException e) {  
+           System.out.println("Error while creating message: " + e.getMessage());  // Log exception  
+           e.printStackTrace();  
+           throw new DataAccessException("Error while creating message", e);  
+        }  
+        return message;  
+     }
+     
+     
     
     
     /**

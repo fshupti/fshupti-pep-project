@@ -43,7 +43,7 @@ public class SocialMediaController {
         app.post("/messages", createMessageHandler);
         app.get("/messages/{id}", getMessageByIdHandler);
         app.get("/messages", getAllMessagesHandler);
-        app.patch("/messages/{id}", updateMessageHandler); // Changed to PATCH
+        app.patch("/messages/{id}", updateMessageHandler); 
         app.delete("/messages/{id}", deleteMessageHandler);
 
         app.post("/login", loginHandler);
@@ -106,36 +106,51 @@ private Handler getAccountByIdHandler = ctx -> {
     };
 
     // Handlers for Message routes
-    private Handler createMessageHandler = ctx -> {
-        try {
-            Message message = ctx.bodyAsClass(Message.class);
-            
-            // Validate message text
-            if (message.getMessage_text() == null || message.getMessage_text().trim().isEmpty()) {
-                ctx.status(400).result("");  // Empty message text
-                return;
-            }
-            if (message.getMessage_text().length() > 255) {
-                ctx.status(400).result("");  // Message text too long
-                return;
-            }
-    
-            // Validate user exists
-            Account user = accountService.getAccountById(message.getPosted_by());
-            if (user == null) {
-                ctx.status(400).result("");  // User not found
-                return;
-            }
-    
-            // Create message
-            Message createdMessage = messageService.createMessage(message);
-            ctx.status(200).json(createdMessage);  // Successfully created message
-        } catch (IllegalArgumentException e) {
-            ctx.status(400).result(e.getMessage());  // Invalid message
-        }
-    };
-    
-    
+    private Handler createMessageHandler = ctx -> {  
+        try {  
+           // Parse the incoming message body  
+           Message message = ctx.bodyAsClass(Message.class);  
+           System.out.println("Received message: " + message);  // Log the incoming message  
+       
+           // Validate message text  
+           if (message.getMessage_text() == null || message.getMessage_text().trim().isEmpty()) {  
+             System.out.println("Invalid message text.");  // Log invalid text error  
+             ctx.status(400).result("");   
+             return;  
+           }  
+       
+           // Validate user existence  
+           Account user = accountService.getAccountById(message.getPosted_by());  
+           if (user == null) {  
+             System.out.println("User not found: " + message.getPosted_by());  // Log user not found  
+             ctx.status(400).result("");   
+             return;  
+           }  
+       
+           // If everything is valid, create the message  
+           Message createdMessage = messageService.createMessage(message);  
+           System.out.println("Message created: " + createdMessage);  // Log created message  
+       
+           // Check if the created message has a valid message_id  
+           if (createdMessage.getMessage_id() == 0) {  
+             System.out.println("Error: Created message does not have a valid message_id");  // Log error  
+           }  
+       
+           // Return the created message with a 200 OK status  
+           ctx.status(200).json(createdMessage);   
+        } catch (IllegalArgumentException e) {  
+           System.out.println("Error during message creation: " + e.getMessage());  // Log exception  
+           ctx.status(400).result("");   
+        } catch (Exception e) {  
+           System.out.println("Error during message creation: " + e.getMessage());  // Log exception  
+           ctx.status(500).result("Internal Server Error");   
+        }  
+     };
+     
+     
+     
+     
+     // get message id handler 
 
     private Handler getMessageByIdHandler = ctx -> {
         int message_id = Integer.parseInt(ctx.pathParam("id"));
